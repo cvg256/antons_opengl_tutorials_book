@@ -1,0 +1,9 @@
+BIN = bin_to_hex
+CC = g++
+FLAGS = -std=c++11 -stdlib=libc++ -DAPPLE -Wall -pedantic -mmacosx-version-min=10.10 -arch x86_64 -fmessage-length=0
+
+INC = -I -I/usr/local/include
+SRC = bin_to_hex.cpp hex_utils.cpp
+
+all:
+	${CC} ${FLAGS} -o ${BIN} ${SRC} ${INC}
