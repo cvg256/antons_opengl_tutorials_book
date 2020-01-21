@@ -13,6 +13,12 @@
 
 static double g_previous_seconds = 0;
 
+int g_window_width = 640;
+int g_window_height = 480;
+int g_framebuffer_width = g_window_width;
+int g_framebuffer_height = g_window_height;
+
+GLFWwindow *g_window = nullptr;
 
 bool LogRestart() {
 	FILE* file = fopen(GL_LOG_FILE, "w");
@@ -334,5 +340,73 @@ bool LoadShaderSourceFromFile( const char *file_name, GLchar* shader_str, int ma
 	shader_str[cnt] = 0;
 
 	fclose( file );
+	return true;
+}
+
+static void _GLFWErrorCallback(int error, const char* description) {
+	LogError("GLFW ERROR: code %i msg: %s\n", error, description);
+
+}
+
+static void _GLFWWindowSizeCallback(GLFWwindow* window, int width, int height) {
+	LogWrite("GLFWWindowSizeBack: %i x %i\n", width, height);
+	g_window_width = width;
+	g_window_height = height;
+
+}
+
+static void _GLFWFramebufferSizeCallback(GLFWwindow* window, int width, int height) {
+	LogWrite("GLFWFramebufferSizeCallback: %i x %i\n", width, height);
+	g_framebuffer_width = width;
+	g_framebuffer_height = height;
+
+}
+
+
+bool StartGL(const char* window_title) {
+	LogWrite("starting GLFW %s\n", glfwGetVersionString());
+
+	glfwSetErrorCallback(_GLFWErrorCallback);
+
+	if(!glfwInit()) {
+		LogError("ERROR: could not start GLFW3\n");
+		return false;
+	}
+
+	//this is needed for macOS
+#ifdef APPLE
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif //APPLE
+
+	g_window = glfwCreateWindow(g_window_width, g_window_height, window_title, NULL, NULL);
+
+	if (!g_window)
+	{
+		LogError("ERROR: could not open window with GLFW3\n");
+		glfwTerminate();
+		return false;
+	}
+
+	glfwSetWindowSizeCallback(g_window, _GLFWWindowSizeCallback);
+	glfwSetFramebufferSizeCallback(g_window, _GLFWFramebufferSizeCallback);
+
+	glfwMakeContextCurrent(g_window);
+
+	// start GLEW extension handler
+	glewExperimental = GL_TRUE;
+	glewInit();
+
+	LogGLParams();
+
+	// get version info
+	const GLubyte* renderer = glGetString(GL_RENDERER);
+	const GLubyte* version = glGetString(GL_VERSION);
+
+	LogWrite("Renderer: %s\n", renderer);
+	LogWrite("OpenGL version supported: %s\n", version);
+
 	return true;
 }
