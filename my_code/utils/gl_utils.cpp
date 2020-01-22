@@ -363,6 +363,45 @@ static void _GLFWFramebufferSizeCallback(GLFWwindow* window, int width, int heig
 }
 
 
+GLuint CreateProgramFromFiles( const char *vert_file_name, const char *frag_file_name ) {
+	
+	constexpr int max_vertex_source_size = 1024 * 256;
+	GLchar vertex_shader[max_vertex_source_size];
+	GLchar fragment_shader[max_vertex_source_size];
+
+	LoadShaderSourceFromFile(vert_file_name, vertex_shader, max_vertex_source_size);
+	LoadShaderSourceFromFile(frag_file_name, fragment_shader, max_vertex_source_size);
+
+	const GLchar *p = NULL;
+
+	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+	p = (const GLchar *)vertex_shader;
+	glShaderSource(vs, 1, &p, NULL);
+	glCompileShader(vs);
+	CheckShaderCompileStatus(vs);
+
+	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+	p = (const GLchar *)fragment_shader;
+	glShaderSource(fs, 1, &p, NULL);
+	glCompileShader(fs);
+	CheckShaderCompileStatus(fs);
+
+	GLuint shader_program = glCreateProgram();
+	glAttachShader(shader_program, fs);
+	glAttachShader(shader_program, vs);
+	glLinkProgram(shader_program);
+
+	CheckProgramLinkStatus(shader_program);
+	ValidateProgram(shader_program);
+	glDeleteShader(vs);
+	glDeleteShader(fs);
+
+	PrintProgramInfoAll(shader_program);
+
+	return shader_program;
+}
+
+
 bool StartGL(const char* window_title) {
 	LogWrite("starting GLFW %s\n", glfwGetVersionString());
 

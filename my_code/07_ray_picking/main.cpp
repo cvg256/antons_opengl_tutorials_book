@@ -169,42 +169,8 @@ int main() {
 
 
 	//-----------CREATE SHADERS------------------
-	//TODO: move to separate function CreateProgrammFromFiles(vs, fs)
-	constexpr int max_vertex_source_size = 1024 * 256;
-	GLchar vertex_shader[max_vertex_source_size];
-	GLchar fragment_shader[max_vertex_source_size];
-
-	LoadShaderSourceFromFile("test_vs.glsl", vertex_shader, max_vertex_source_size);
-	LoadShaderSourceFromFile("test_fs.glsl", fragment_shader, max_vertex_source_size);
-
-	const GLchar *p = NULL;
-
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	p = (const GLchar *)vertex_shader;
-	glShaderSource(vs, 1, &p, NULL);
-	glCompileShader(vs);
-	CheckShaderCompileStatus(vs);
-
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	p = (const GLchar *)fragment_shader;
-	glShaderSource(fs, 1, &p, NULL);
-	glCompileShader(fs);
-	CheckShaderCompileStatus(fs);
-
-	GLuint shader_program = glCreateProgram();
-	glAttachShader(shader_program, fs);
-	glAttachShader(shader_program, vs);
-	glLinkProgram(shader_program);
-
-	CheckProgramLinkStatus(shader_program);
-	ValidateProgram(shader_program);
-	glDeleteShader(vs);
-	glDeleteShader(fs);
-
-	PrintProgramInfoAll(shader_program);
-
+	GLuint shader_program = CreateProgramFromFiles("test_vs.glsl", "test_fs.glsl");
 	glUseProgram(shader_program);
-
 
 	GLint model_mat_loc  = glGetUniformLocation(shader_program, "model");
 	assert(model_mat_loc > -1);
@@ -262,7 +228,6 @@ int main() {
 	//-----------RENDERING LOOP------------------
 	double previous_seconds = glfwGetTime();
 
-	// glUniformMatrix4fv(model_mat_loc, 1, GL_FALSE, model_mat);
 	glUniformMatrix4fv(view_mat_loc, 1, GL_FALSE, g_view_mat.m);
 	glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, g_proj_mat.m);
 
@@ -282,7 +247,6 @@ int main() {
 		glUniformMatrix4fv( proj_mat_loc, 1, GL_FALSE, g_proj_mat.m );
 		glBindVertexArray(vao);
 
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		for (int i = 0; i < NUM_SPHERES; ++i) {
 
 			GLfloat blue = 0.0;
